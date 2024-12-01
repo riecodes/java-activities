@@ -1,0 +1,36 @@
+Gmorning kuya bale po GUI ulit siya but this time may database na gamit XAMPP and mySQL
+
+
+MAINFORM
+-Yung mga wash,dry,total, and exit po is puro buttons and lahat pagpinindot pupunta sa panibagong form except sa total and exit
+
+-sa center naman po ng main form may table which is magseserve rin as database... so pagpinindot si total button, maguupdate yung database dipende sa nilagay ni user na info doon sa wash and dry form
+
+-pag Exit button magteterminate ang program
+
+-Under po sa wash column ng table, diyan nakalagay po yung  total amount ng wash ni user kasama na dun yung mga detergents and and fab cons. Same lang po sa Dry column.
+
+-Sa total column po, is yung total amount pag pinagadd na lahat
+
+
+WASH FORM
+-Dito naman po is every data or info or changes na gagawin ni user is magsasave sa database pag clinick CONFIRM (however, hindi muna siya magaappear sa table, saka lang magaappear pag nagtotal si user)
+
+-The moment nung pinindot ni user yung wash button sa main form may amount 60pesos na agad
+
+-Sa weight po, naka list-down option siya from 1-8kg
+
+-Sa detergent, naka listdown option din po siya
+Ariel and  Pride
+
+-Sa fab con naman naka listdown din na Downy and surf
+
+-Lahat ng detergents is 11 pesos while fab conditioners is all 16 pesos
+
+-Pag clinick CONFIRM ay babalik na agad sa mainform
+
+
+DRY FORM
+-dito po may dalawang option lang which is  YES and NO
+
+-pag clinick YES, magdadagdag na ng 60 pesos dun sa amount ng dry then balik agad main form. Pag NO, walang madadagdag pero babalik din sa main form

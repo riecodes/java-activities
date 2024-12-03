@@ -194,6 +194,9 @@
                 </Property>
                 <Property name="text" type="java.lang.String" value="DRY"/>
               </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="dryBtnActionPerformed"/>
+              </Events>
             </Component>
             <Component class="javax.swing.JButton" name="totalBtn">
               <Properties>
@@ -208,6 +211,9 @@
                 </Property>
                 <Property name="text" type="java.lang.String" value="TOTAL"/>
               </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="totalBtnActionPerformed"/>
+              </Events>
             </Component>
             <Component class="javax.swing.JButton" name="exitBtn">
               <Properties>
@@ -222,6 +228,9 @@
                 </Property>
                 <Property name="text" type="java.lang.String" value="EXIT"/>
               </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="exitBtnActionPerformed"/>
+              </Events>
             </Component>
           </SubComponents>
         </Container>

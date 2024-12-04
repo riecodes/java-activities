@@ -1,12 +1,100 @@
 package com.mycompany.laundryexpress;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
+
+
 public class LaundryExpress extends javax.swing.JFrame {
 
     public LaundryExpress() {
         initComponents();
+        loadTables();
+    }
+    
+    // Method to load data into the table
+    private void loadTables() {
+
+        // SQL query to retrieve data from the transactions table
+        String query = "SELECT name, number, wash_details, dry_details, total_amount FROM transactions WHERE is_completed = 1";
+
+        try (Connection conn = DatabaseConnection.connect();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+            
+            // Prepare the model for the table
+            DefaultTableModel model = (DefaultTableModel) tableDatabase.getModel();
+            // Clear existing rows in the table
+            model.setRowCount(0);
+
+            // Loop through the result set and populate the table with the data
+            while (rs.next()) {
+                // Get the data from the result set
+                String name = rs.getString("name");
+                String number = rs.getString("number");
+                String washDetails = rs.getString("wash_details");
+                String dryDetails = rs.getString("dry_details");
+                int totalAmount = rs.getInt("total_amount");
+
+                // Add the data to the table model
+                model.addRow(new Object[]{name, number, washDetails, dryDetails, totalAmount});
+            }
+
+        } catch (SQLException e) {
+            // Handle exceptions (e.g., connection errors)
+            JOptionPane.showMessageDialog(this, "Error loading data: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private void updateTransaction() {
+        try {
+            // Assuming you have a connection to your database (e.g., conn)
+            Connection conn = DatabaseConnection.connect();
+            String updateQuery = "UPDATE transactions SET is_completed = 1 WHERE wash_details IS NOT NULL AND dry_details IS NOT NULL AND total_amount IS NOT NULL";
+            Statement stmt = conn.createStatement();
+            stmt.executeUpdate(updateQuery);
+
+            // Now, update the table to only show completed transactions
+            String selectQuery = "SELECT * FROM transactions WHERE is_completed = 1";
+            ResultSet rs = stmt.executeQuery(selectQuery);
+
+            // Clear the previous data in the table (if any)
+            DefaultTableModel model = (DefaultTableModel) tableDatabase.getModel();
+            model.setRowCount(0);
+
+            // Add rows to the table
+            while (rs.next()) {
+                String name = rs.getString("name");
+                String number = rs.getString("number");
+                String washDetails = rs.getString("wash_details");
+                String dryDetails = rs.getString("dry_details");
+                double totalAmount = rs.getDouble("total_amount");
+
+                // Add the row to the table model
+                model.addRow(new Object[]{name, number, washDetails, dryDetails, totalAmount});
+            }
+
+            // Update the table header
+            tableDatabase.getColumnModel().getColumn(0).setHeaderValue("Name");
+            tableDatabase.getColumnModel().getColumn(1).setHeaderValue("Number");
+            tableDatabase.getColumnModel().getColumn(2).setHeaderValue("Wash");
+            tableDatabase.getColumnModel().getColumn(3).setHeaderValue("Dry");
+            tableDatabase.getColumnModel().getColumn(4).setHeaderValue("TOTAL");
+
+            // Refresh the table
+            tableDatabase.revalidate();
+            tableDatabase.repaint();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
-    
     // GENERATED CODE
     // GENERATED CODE
     // GENERATED CODE
@@ -224,7 +312,93 @@ public class LaundryExpress extends javax.swing.JFrame {
     }//GEN-LAST:event_dryBtnActionPerformed
 
     private void totalBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_totalBtnActionPerformed
-        // TODO add your handling code here:
+        
+        // Database connection (you should set this up as per your existing setup)
+        Connection conn = DatabaseConnection.connect();
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+
+        try {
+            // Query to get the latest transaction_id (most recent transaction)
+            String latestTransactionSql = "SELECT transaction_id FROM transactions ORDER BY transaction_id DESC LIMIT 1";
+
+            // Prepare the statement to get the latest transaction_id
+            stmt = conn.prepareStatement(latestTransactionSql);
+            rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                int transactionId = rs.getInt("transaction_id");
+
+                // Query to fetch the necessary transaction data
+                String sql = "SELECT t.transaction_id, t.wash_amount, t.dry_amount, t.wash_details, t.dry_details, " +
+                             "wd.wash_amount AS wash_amount_details, wd.detergent, wd.fabric_conditioner, " +
+                             "dd.dry_amount AS dry_amount_details " +
+                             "FROM transactions t " +
+                             "LEFT JOIN washdetails wd ON t.transaction_id = wd.transaction_id " +
+                             "LEFT JOIN drydetails dd ON t.transaction_id = dd.transaction_id " +
+                             "WHERE t.transaction_id = ?";
+
+                stmt = conn.prepareStatement(sql);
+                stmt.setInt(1, transactionId);
+                rs = stmt.executeQuery();
+
+                if (rs.next()) {
+                    // Fetch data from the result set
+                    double washAmount = rs.getDouble("wash_amount");  // Initial wash amount (from transactions)
+                    double dryAmount = rs.getDouble("dry_amount");    // Initial dry amount (from transactions)
+                    double washAmountDetails = rs.getDouble("wash_amount_details"); // Detailed wash amount
+                    double dryAmountDetails = rs.getDouble("dry_amount_details");   // Detailed dry amount
+
+                    // Calculate total amount using detailed amounts
+                    double totalAmount = washAmountDetails + dryAmountDetails;
+
+                    // Prepare the details strings
+                    String detergent = rs.getString("detergent");
+                    String fabricConditioner = rs.getString("fabric_conditioner");
+                    String updatedWashDetails = "₱" + washAmountDetails + ", " + detergent + ", " + fabricConditioner;
+                    String updatedDryDetails = (dryAmountDetails == 60.00) ? "Yes" : "No";  // Check for specific dry amount
+
+                    // Update the transactions table with the new calculated values
+                    String updateSql = "UPDATE transactions SET " +
+                                       "wash_amount = ?, dry_amount = ?, total_amount = ?, " +
+                                       "wash_details = ?, dry_details = ? " +
+                                       "WHERE transaction_id = ?";
+
+                    stmt = conn.prepareStatement(updateSql);
+                    stmt.setDouble(1, washAmountDetails);  // Update with detailed values
+                    stmt.setDouble(2, dryAmountDetails);
+                    stmt.setDouble(3, totalAmount);  // Update with total of wash + dry amounts
+                    stmt.setString(4, updatedWashDetails);
+                    stmt.setString(5, updatedDryDetails);
+                    stmt.setInt(6, transactionId);
+
+                    // Execute update
+                    stmt.executeUpdate();
+                    JOptionPane.showMessageDialog(null, "Transaction updated successfully!");
+                    
+                    updateTransaction();
+
+                } else {
+                    JOptionPane.showMessageDialog(null, "No transaction found with the provided ID.");
+                }
+            } else {
+                JOptionPane.showMessageDialog(null, "No transactions found.");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Error: " + e.getMessage());
+        } finally {
+            // Close the resources
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+                if (conn != null) conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        
     }//GEN-LAST:event_totalBtnActionPerformed
 
     private void exitBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitBtnActionPerformed

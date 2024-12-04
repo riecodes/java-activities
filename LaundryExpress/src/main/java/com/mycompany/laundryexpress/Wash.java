@@ -1,5 +1,11 @@
 package com.mycompany.laundryexpress;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import javax.swing.JOptionPane;
+
 public class Wash extends javax.swing.JDialog {
 
     public Wash(java.awt.Frame parent, boolean modal) {
@@ -28,7 +34,7 @@ public class Wash extends javax.swing.JDialog {
         detergentComboBox = new javax.swing.JComboBox<>();
         fabricComboBox = new javax.swing.JComboBox<>();
         backWashBtn = new javax.swing.JButton();
-        detergentComboBox1 = new javax.swing.JComboBox<>();
+        weightComboBox = new javax.swing.JComboBox<>();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
@@ -129,13 +135,13 @@ public class Wash extends javax.swing.JDialog {
             }
         });
 
-        detergentComboBox1.setBackground(new java.awt.Color(255, 255, 255));
-        detergentComboBox1.setFont(new java.awt.Font("Arial", 1, 14)); // NOI18N
-        detergentComboBox1.setForeground(new java.awt.Color(0, 0, 0));
-        detergentComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "1 kg  ", "2 kg  ", "3 kg  ", "4 kg  ", "5 kg  ", "6 kg  ", "7 kg  ", "8 kg" }));
-        detergentComboBox1.addActionListener(new java.awt.event.ActionListener() {
+        weightComboBox.setBackground(new java.awt.Color(255, 255, 255));
+        weightComboBox.setFont(new java.awt.Font("Arial", 1, 14)); // NOI18N
+        weightComboBox.setForeground(new java.awt.Color(0, 0, 0));
+        weightComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "1 kg  ", "2 kg  ", "3 kg  ", "4 kg  ", "5 kg  ", "6 kg  ", "7 kg  ", "8 kg" }));
+        weightComboBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                detergentComboBox1ActionPerformed(evt);
+                weightComboBoxActionPerformed(evt);
             }
         });
 
@@ -163,7 +169,7 @@ public class Wash extends javax.swing.JDialog {
                     .addComponent(nameTextField)
                     .addComponent(detergentComboBox, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(fabricComboBox, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(detergentComboBox1, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(weightComboBox, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap(105, Short.MAX_VALUE))
             .addGroup(contentPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, contentPanel2Layout.createSequentialGroup()
@@ -184,15 +190,13 @@ public class Wash extends javax.swing.JDialog {
                     .addComponent(nameTextField)
                     .addComponent(nameLabel))
                 .addGap(18, 18, 18)
-                .addGroup(contentPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(numberLabel)
+                .addGroup(contentPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(numberLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(numberTextField))
-                .addGap(18, 18, 18)
-                .addGroup(contentPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(contentPanel2Layout.createSequentialGroup()
-                        .addComponent(detergentComboBox1, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE)
-                        .addGap(1, 1, 1))
-                    .addComponent(weightLabel))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 19, Short.MAX_VALUE)
+                .addGroup(contentPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(weightLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(weightComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addGroup(contentPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(detergentLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -234,8 +238,111 @@ public class Wash extends javax.swing.JDialog {
     // GENERATED CODE
     // GENERATED CODE
     // GENERATED CODE
+    
+    
     private void confirmBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_confirmBtnActionPerformed
-        // TODO add your handling code here:
+        
+        // Check if all fields are filled
+        String name = nameTextField.getText().trim();
+        String number = numberTextField.getText().trim();
+        String weightSelected = (String) weightComboBox.getSelectedItem(); // Updated to use ComboBox
+        String detergent = (String) detergentComboBox.getSelectedItem();
+        String fabricConditioner = (String) fabricComboBox.getSelectedItem();
+
+        if (name.isEmpty() || weightSelected == null || detergent == null || fabricConditioner == null) {
+            JOptionPane.showMessageDialog(this, "Please fill out all fields.", "Input Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Parse weight to extract the numeric value
+        int weight;
+        try {
+            // Extract the numeric portion, assuming format like "1 kg", "2 kg"
+            weight = Integer.parseInt(weightSelected.split(" ")[0]);
+            if (weight < 1 || weight > 8) {
+                throw new NumberFormatException();
+            }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Please select a valid weight between 1 and 8.", "Input Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Detergent cost and fabric conditioner cost
+        double detergentCost = 11.00;
+        double fabricConditionerCost = 16.00;
+
+        // Base wash amount is 60 pesos, you can modify this if needed
+        double washAmount = 60.00;
+
+        // Calculate the total amount for the wash
+        double totalAmount = washAmount + detergentCost + fabricConditionerCost;
+
+        // Insert data into transactions table first
+        String insertTransactionSQL = "INSERT INTO transactions (wash_amount, name, number, dry_amount, total_amount) VALUES (?, ?, ?, ?, ?)";
+
+        try (Connection connection = DatabaseConnection.connect();
+             PreparedStatement transactionStatement = connection.prepareStatement(insertTransactionSQL, PreparedStatement.RETURN_GENERATED_KEYS)) {
+
+            // Set transaction values
+            transactionStatement.setDouble(1, washAmount); // Wash amount
+            transactionStatement.setString(2, name);
+            transactionStatement.setString(3, number);
+            transactionStatement.setDouble(4, 0.00); // Dry amount (assuming 0 for now)
+            transactionStatement.setDouble(5, totalAmount); // Total amount
+
+            // Execute the transaction insert
+            int rowsInserted = transactionStatement.executeUpdate();
+
+            if (rowsInserted > 0) {
+                // Get the generated transaction_id
+                try (ResultSet generatedKeys = transactionStatement.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        int transactionId = generatedKeys.getInt(1); // Get the transaction_id
+
+                        // Now insert into washdetails table using the generated transaction_id
+                        String insertWashDetailsSQL = "INSERT INTO washdetails (transaction_id, weight_kg, detergent, fabric_conditioner, wash_amount) VALUES (?, ?, ?, ?, ?)";
+                        try (PreparedStatement washDetailsStatement = connection.prepareStatement(insertWashDetailsSQL)) {
+                            washDetailsStatement.setInt(1, transactionId); // Use the generated transaction_id
+                            washDetailsStatement.setInt(2, weight); // Weight
+                            washDetailsStatement.setString(3, detergent); // Detergent
+                            washDetailsStatement.setString(4, fabricConditioner); // Fabric Conditioner
+                            washDetailsStatement.setDouble(5, totalAmount); // Total wash amount
+
+                            int washDetailsInserted = washDetailsStatement.executeUpdate();
+                            if (washDetailsInserted > 0) {
+                                // Now insert into drydetails table using the generated transaction_id
+                                String insertDryDetailsSQL = "INSERT INTO drydetails (transaction_id) VALUES (?)";
+                                try (PreparedStatement dryDetailsStatement = connection.prepareStatement(insertDryDetailsSQL)) {
+                                    // For dry details, assuming an opted dry cost (you can adjust this value if necessary)                                                                 
+
+                                    dryDetailsStatement.setInt(1, transactionId); // Use the generated transaction_id                                                                        
+
+                                    int dryDetailsInserted = dryDetailsStatement.executeUpdate();
+                                    if (dryDetailsInserted > 0) {
+                                        JOptionPane.showMessageDialog(this, "Wash details saved successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                                        
+                                        dispose(); // Remove the form
+                                        
+                                        clearFields();  // Reset fields after successful insert
+                                    } else {
+                                        JOptionPane.showMessageDialog(this, "Failed to save dry details.", "Error", JOptionPane.ERROR_MESSAGE);
+                                    }
+                                }
+                            } else {
+                                JOptionPane.showMessageDialog(this, "Failed to save wash details.", "Error", JOptionPane.ERROR_MESSAGE);
+                            }
+                        }
+                    }
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Failed to save transaction.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Database error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
+
     }//GEN-LAST:event_confirmBtnActionPerformed
 
     private void backWashBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_backWashBtnActionPerformed
@@ -260,52 +367,22 @@ public class Wash extends javax.swing.JDialog {
         // TODO add your handling code here:
     }//GEN-LAST:event_detergentComboBox1ActionPerformed
 
-    
-//    public static void main(String args[]) {
-//        /* Set the Nimbus look and feel */
-//        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-//        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-//         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-//         */
-//        try {
-//            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-//                if ("Nimbus".equals(info.getName())) {
-//                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-//                    break;
-//                }
-//            }
-//        } catch (ClassNotFoundException ex) {
-//            java.util.logging.Logger.getLogger(Wash.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-//        } catch (InstantiationException ex) {
-//            java.util.logging.Logger.getLogger(Wash.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-//        } catch (IllegalAccessException ex) {
-//            java.util.logging.Logger.getLogger(Wash.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-//        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-//            java.util.logging.Logger.getLogger(Wash.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-//        }
-//        //</editor-fold>
-//
-//        /* Create and display the dialog */
-//        java.awt.EventQueue.invokeLater(new Runnable() {
-//            public void run() {
-//                Wash dialog = new Wash(new javax.swing.JFrame(), true);
-//                dialog.addWindowListener(new java.awt.event.WindowAdapter() {
-//                    @Override
-//                    public void windowClosing(java.awt.event.WindowEvent e) {
-//                        System.exit(0);
-//                    }
-//                });
-//                dialog.setVisible(true);
-//            }
-//        });
-//    }
+    private void weightComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_weightComboBoxActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_weightComboBoxActionPerformed
+
+    private void clearFields() {
+        nameTextField.setText("");
+        numberTextField.setText("");
+        detergentComboBox.setSelectedIndex(0);
+        fabricComboBox.setSelectedIndex(0);
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton backWashBtn;
     private javax.swing.JButton confirmBtn;
     private javax.swing.JPanel contentPanel2;
     private javax.swing.JComboBox<String> detergentComboBox;
-    private javax.swing.JComboBox<String> detergentComboBox1;
     private javax.swing.JLabel detergentLabel;
     private javax.swing.JComboBox<String> fabricComboBox;
     private javax.swing.JLabel fabricLabel;
@@ -315,6 +392,7 @@ public class Wash extends javax.swing.JDialog {
     private javax.swing.JLabel numberLabel;
     private javax.swing.JTextField numberTextField;
     private javax.swing.JLabel washLabel;
+    private javax.swing.JComboBox<String> weightComboBox;
     private javax.swing.JLabel weightLabel;
     // End of variables declaration//GEN-END:variables
 }

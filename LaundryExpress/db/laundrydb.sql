@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 03, 2024 at 01:58 AM
+-- Generation Time: Dec 04, 2024 at 04:04 PM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -30,8 +30,7 @@ SET time_zone = "+00:00";
 CREATE TABLE `drydetails` (
   `dry_id` int(11) NOT NULL,
   `transaction_id` int(11) DEFAULT NULL,
-  `opted_for_dry` tinyint(1) DEFAULT 0,
-  `dry_cost` decimal(10,2) DEFAULT 0.00,
+  `dry_amount` decimal(10,2) DEFAULT 0.00,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -43,10 +42,15 @@ CREATE TABLE `drydetails` (
 
 CREATE TABLE `transactions` (
   `transaction_id` int(11) NOT NULL,
+  `name` varchar(255) DEFAULT NULL,
+  `number` int(11) DEFAULT NULL,
   `wash_amount` decimal(10,2) DEFAULT 0.00,
+  `wash_details` varchar(255) DEFAULT NULL,
   `dry_amount` decimal(10,2) DEFAULT 0.00,
+  `dry_details` varchar(255) DEFAULT NULL,
   `total_amount` decimal(10,2) DEFAULT 0.00,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `is_completed` tinyint(1) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -61,9 +65,7 @@ CREATE TABLE `washdetails` (
   `weight_kg` int(11) DEFAULT NULL CHECK (`weight_kg` between 1 and 8),
   `detergent` enum('Ariel','Pride') DEFAULT NULL,
   `fabric_conditioner` enum('Downy','Surf') DEFAULT NULL,
-  `detergent_cost` decimal(10,2) DEFAULT 11.00,
-  `fabric_conditioner_cost` decimal(10,2) DEFAULT 16.00,
-  `total_wash_amount` decimal(10,2) DEFAULT 60.00,
+  `wash_amount` decimal(10,2) DEFAULT 60.00,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 

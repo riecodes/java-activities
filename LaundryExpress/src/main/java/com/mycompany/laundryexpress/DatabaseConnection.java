@@ -30,18 +30,4 @@ public class DatabaseConnection {
         }
         return connection;
     }
-    
-    public static void main(String[] args) {
-        // Test the connection
-        Connection conn = connect();
-        if (conn != null) {
-            // Close the connection after testing
-            try {
-                conn.close();
-                System.out.println("Connection closed.");
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-    }
 }

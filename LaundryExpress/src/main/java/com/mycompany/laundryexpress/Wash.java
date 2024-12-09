@@ -108,7 +108,7 @@ public class Wash extends javax.swing.JDialog {
         detergentComboBox.setBackground(new java.awt.Color(255, 255, 255));
         detergentComboBox.setFont(new java.awt.Font("Arial", 1, 14)); // NOI18N
         detergentComboBox.setForeground(new java.awt.Color(0, 0, 0));
-        detergentComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Ariel", "Pride" }));
+        detergentComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Ariel", "Pride", "No Detergent" }));
         detergentComboBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 detergentComboBoxActionPerformed(evt);
@@ -118,7 +118,7 @@ public class Wash extends javax.swing.JDialog {
         fabricComboBox.setBackground(new java.awt.Color(255, 255, 255));
         fabricComboBox.setFont(new java.awt.Font("Arial", 1, 14)); // NOI18N
         fabricComboBox.setForeground(new java.awt.Color(0, 0, 0));
-        fabricComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Downy", "Surf" }));
+        fabricComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Downy", "Surf", "No Fabric Conditioner" }));
         fabricComboBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 fabricComboBoxActionPerformed(evt);
@@ -268,9 +268,16 @@ public class Wash extends javax.swing.JDialog {
         }
 
         // Detergent cost and fabric conditioner cost
-        double detergentCost = 11.00;
-        double fabricConditionerCost = 16.00;
+        double detergentCost = 0.00;
+        double fabricConditionerCost = 0.00;
+        
+        if (!"No Detergent".equals(detergent)) {
+            detergentCost = 11.00;
+        }
 
+        if (!"No Fabric Conditioner".equals(fabricConditioner)) {
+            fabricConditionerCost = 16.00;
+        }
         // Base wash amount is 60 pesos, you can modify this if needed
         double washAmount = 60.00;
 
